@@ -867,12 +867,23 @@
                 document.getElementById("submitBtn").click();
             }
         });
-        // --- Hàm hiển thị thông báo chính ---
+        // --- Logic Thông báo thông minh ---
         function showWelcomePopup() {
+            const popupHiddenUntil = localStorage.getItem('hidePopupUntil');
+            const now = new Date().getTime();
+
+            // Nếu đang trong thời gian "Ẩn 1 phút", không làm gì cả
+            if (popupHiddenUntil && now < popupHiddenUntil) {
+                // Tuy nhiên, vẫn phải đặt lịch để nó tự hiện lại khi hết thời gian ẩn
+                const remainingTime = popupHiddenUntil - now;
+                setTimeout(showWelcomePopup, remainingTime);
+                return;
+            }
+
             Swal.fire({
-                title: 'Có thể donate để ủng hộ Admin',
-                text: 'Chào mừng bạn đã đến với Locket Gold!',
-                imageUrl: 'https://i.imgur.com/P1JlSEB.jpeg', // Thay link ảnh của bạn vào đây
+                title: 'THÔNG BÁO QUAN TRỌNG',
+                text: 'DONATE để ủng hộ Admin!',
+                imageUrl: 'https://i.imgur.com/FZrbXUL.jpeg', // Thay link ảnh của bạn vào đây
                 imageWidth: 200,
                 imageHeight: 200,
                 showCancelButton: true,
@@ -883,7 +894,12 @@
                 ...swalGlassParams
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // 1. Hiện thông báo xác nhận nhỏ của bạn
+                    // 1. Nếu ấn "Tắt trong 1 phút": Lưu vào LocalStorage
+                    const hideTime = 1 * 60 * 1000; // 1 phút
+                    const expiry = new Date().getTime() + hideTime;
+                    localStorage.setItem('hidePopupUntil', expiry);
+
+                    // 2. Hiện thông báo xác nhận của bạn
                     Swal.fire({
                         icon: 'success',
                         title: 'Đã ẩn!',
@@ -893,15 +909,18 @@
                         ...swalGlassParams
                     });
 
-                    // 2. Thiết lập hiện lại sau 1 phút (60000ms)
-                    setTimeout(showWelcomePopup, 60000); 
+                    // 3. Đặt lịch tự hiện lại sau đúng 1 phút (không cần load trang)
+                    setTimeout(showWelcomePopup, hideTime);
+                } else {
+                    // Nếu ấn "Đóng": Xóa dấu vết để Load lại web là hiện luôn
+                    localStorage.removeItem('hidePopupUntil');
                 }
             });
         }
 
-        // Tự động gọi khi load trang hoặc F5
-        window.addEventListener('load', function() {
-            showWelcomePopup();
+        // Kích hoạt khi mở trang
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(showWelcomePopup, 600); // Trễ một chút để mobile chạy ổn định
         });
     </script>
 
