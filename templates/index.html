@@ -867,6 +867,46 @@
                 document.getElementById("submitBtn").click();
             }
         });
+        // --- Đoạn code thêm bảng thông báo khi load trang ---
+window.addEventListener('load', function() {
+    const popupClosedTime = localStorage.getItem('hidePopupUntil');
+    const now = new Date().getTime();
+
+    // Kiểm tra nếu chưa đến thời gian hiện lại (5 phút) thì không hiện
+    if (popupClosedTime && now < popupClosedTime) {
+        return;
+    }
+
+    Swal.fire({
+        title: 'Chào mừng bạn!',
+        text: 'Chúc bạn có trải nghiệm tuyệt vời với Locket Gold',
+        imageUrl: 'https://i.imgur.com/lTaw1jA.jpeg', // Thay link ảnh của bạn vào đây
+        imageWidth: 200,
+        imageHeight: 200,
+        imageAlt: 'Welcome Image',
+        showCancelButton: true,
+        confirmButtonText: 'Tắt trong 5 phút',
+        cancelButtonText: 'Đóng',
+        reverseButtons: true,
+        ...swalGlassParams // Sử dụng chung style glassmorphism của web
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Thiết lập thời gian hiện tại + 1 phút
+            const hideUntil = new Date().getTime() + (5 * 60 * 1000);
+            localStorage.setItem('hidePopupUntil', hideUntil);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã tắt thông báo!',
+                text: 'Thông báo sẽ không hiện lại trong 5 phút tới.',
+                timer: 1500,
+                showConfirmButton: false,
+                ...swalGlassParams
+            });
+        }
+    });
+});
+// --- Kết thúc đoạn code thông báo ---
     </script>
 
 </body>
