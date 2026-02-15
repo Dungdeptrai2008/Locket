@@ -916,8 +916,8 @@
                 ...glassStyle
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // 1. Nếu ấn "Tắt trong 1 phút": Lưu vào LocalStorage
-                    const hideTime = 60 * 1000; // 60 giây
+                    // 1. Nếu ấn "Tắt trong 5 phút": Lưu vào LocalStorage
+                    const hideTime = 300 * 1000; // 300 giây
                     const expiry = new Date().getTime() + hideTime;
                     localStorage.setItem('hidePopupUntil', expiry);
 
@@ -925,7 +925,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Đã ẩn!',
-                        text: 'Thông báo sẽ hiện lại sau 1 phút.',
+                        text: 'Thông báo sẽ hiện lại sau 5 phút.',
                         timer: 1500,
                         showConfirmButton: false,
                         ...glassStyle
