@@ -329,7 +329,7 @@ This project is created for **educational purposes only** to demonstrate:
 
 ## Credits
 
-- **Developer**: [Mai Huy Bao](https://maihuybao.dev)
+- **Developer**: [QuangDung.dev](https://www.facebook.com/Dungdzai80)
 - **Design**: Modern glassmorphism with gradient accents
 - **Font**: [Outfit](https://fonts.google.com/specimen/Outfit) by Google Fonts
 - **Icons**: SVG icons from various sources
