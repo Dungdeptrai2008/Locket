@@ -867,22 +867,44 @@
                 document.getElementById("submitBtn").click();
             }
         });
-        // --- Logic Thông báo thông minh ---
-        function showWelcomePopup() {
+        // --- Logic Thông báo Siêu Ổn Định (PC & Mobile) ---
+        function initWelcomePopup() {
+            // Kiểm tra xem thư viện Swal đã sẵn sàng chưa, nếu chưa thì đợi 100ms rồi kiểm tra lại
+            if (typeof Swal === 'undefined') {
+                setTimeout(initWelcomePopup, 100);
+                return;
+            }
+
             const popupHiddenUntil = localStorage.getItem('hidePopupUntil');
             const now = new Date().getTime();
 
-            // Nếu đang trong thời gian "Ẩn 1 phút", không làm gì cả
-            if (popupHiddenUntil && now < popupHiddenUntil) {
-                // Tuy nhiên, vẫn phải đặt lịch để nó tự hiện lại khi hết thời gian ẩn
-                const remainingTime = popupHiddenUntil - now;
+            // Nếu đang trong thời gian "Ẩn 1 phút", đặt lịch để tự hiện lại rồi thoát
+            if (popupHiddenUntil && now < parseInt(popupHiddenUntil)) {
+                const remainingTime = parseInt(popupHiddenUntil) - now;
                 setTimeout(showWelcomePopup, remainingTime);
                 return;
             }
 
+            showWelcomePopup();
+        }
+
+        function showWelcomePopup() {
+            // Định nghĩa lại style trực tiếp để tránh lỗi "swalGlassParams is not defined"
+            const glassStyle = {
+                background: 'rgba(30, 30, 30, 0.8)',
+                backdropFilter: 'blur(16px)',
+                color: '#fff',
+                customClass: {
+                    popup: 'glass-popup',
+                    confirmButton: 'glass-confirm-btn',
+                    cancelButton: 'glass-cancel-btn'
+                },
+                buttonsStyling: false
+            };
+
             Swal.fire({
                 title: 'THÔNG BÁO QUAN TRỌNG',
-                text: 'DONATE để ủng hộ Admin!',
+                text: 'Donate để ủng hộ Admin nhé!',
                 imageUrl: 'https://i.imgur.com/FZrbXUL.jpeg', // Thay link ảnh của bạn vào đây
                 imageWidth: 200,
                 imageHeight: 200,
@@ -891,25 +913,25 @@
                 cancelButtonText: 'Đóng',
                 reverseButtons: true,
                 allowOutsideClick: false,
-                ...swalGlassParams
+                ...glassStyle
             }).then((result) => {
                 if (result.isConfirmed) {
                     // 1. Nếu ấn "Tắt trong 1 phút": Lưu vào LocalStorage
-                    const hideTime = 1 * 60 * 1000; // 1 phút
+                    const hideTime = 60 * 1000; // 60 giây
                     const expiry = new Date().getTime() + hideTime;
                     localStorage.setItem('hidePopupUntil', expiry);
 
-                    // 2. Hiện thông báo xác nhận của bạn
+                    // 2. Hiện thông báo xác nhận nhỏ
                     Swal.fire({
                         icon: 'success',
                         title: 'Đã ẩn!',
                         text: 'Thông báo sẽ hiện lại sau 1 phút.',
                         timer: 1500,
                         showConfirmButton: false,
-                        ...swalGlassParams
+                        ...glassStyle
                     });
 
-                    // 3. Đặt lịch tự hiện lại sau đúng 1 phút (không cần load trang)
+                    // 3. Đặt lịch tự hiện lại sau đúng 1 phút
                     setTimeout(showWelcomePopup, hideTime);
                 } else {
                     // Nếu ấn "Đóng": Xóa dấu vết để Load lại web là hiện luôn
@@ -918,10 +940,12 @@
             });
         }
 
-        // Kích hoạt khi mở trang
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(showWelcomePopup, 600); // Trễ một chút để mobile chạy ổn định
-        });
+        // Kích hoạt ngay lập tức khi script được đọc
+        if (document.readyState === 'complete') {
+            initWelcomePopup();
+        } else {
+            window.addEventListener('load', initWelcomePopup);
+        }
     </script>
 
 </body>
