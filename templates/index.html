@@ -570,7 +570,7 @@
             <img src="https://play-lh.googleusercontent.com/eRZLg00mAQGayCrFjDBklPIpW3qFHcmUs8PUQA4z7hVe-cDKMcRqecVHONAIexJGJZM"
                 alt="Locket Icon" class="app-icon">
             <h1>Locket Gold</h1>
-            <p class="subtitle">Unlock premium features instantly</p>
+            <p class="subtitle">𝘕𝘨𝘶𝘺𝘦𝘯 𝘘𝘶𝘢𝘯𝘨 𝘋𝘶𝘯𝘨</p>
 
             <div class="form-group">
                 <div class="global-queue-container" id="globalQueueContainer">
@@ -726,9 +726,9 @@
     </div>
 
     <footer>
-        <p>Created with ❤️ by <a href="https://maihuybao.dev" target="_blank">Mai Huy Bao</a></p>
+        <p>Bú liếm bởi <a href="https://t.me/nqdungg" target="_blank">Nguyen Quang Dung</a></p>
         <p style="margin-top: 5px; font-size: 0.8rem;">
-            <a href="https://github.com/maihuybao/LocketGoldUnlockerWithUsername" target="_blank" style="opacity: 0.7;">
+            <a href="https://github.com/Dungdeptrai2008/Locket" target="_blank" style="opacity: 0.7;">
                 Open Source on GitHub
             </a>
         </p>
@@ -1210,6 +1210,85 @@
                 document.getElementById("submitBtn").click();
             }
         });
+        // --- Logic Thông báo Siêu Ổn Định (PC & Mobile) ---
+        function initWelcomePopup() {
+            // Kiểm tra xem thư viện Swal đã sẵn sàng chưa, nếu chưa thì đợi 100ms rồi kiểm tra lại
+            if (typeof Swal === 'undefined') {
+                setTimeout(initWelcomePopup, 100);
+                return;
+            }
+
+            const popupHiddenUntil = localStorage.getItem('hidePopupUntil');
+            const now = new Date().getTime();
+
+            // Nếu đang trong thời gian "Ẩn 1 phút", đặt lịch để tự hiện lại rồi thoát
+            if (popupHiddenUntil && now < parseInt(popupHiddenUntil)) {
+                const remainingTime = parseInt(popupHiddenUntil) - now;
+                setTimeout(showWelcomePopup, remainingTime);
+                return;
+            }
+
+            showWelcomePopup();
+        }
+
+        function showWelcomePopup() {
+            // Định nghĩa lại style trực tiếp để tránh lỗi "swalGlassParams is not defined"
+            const glassStyle = {
+                background: 'rgba(30, 30, 30, 0.8)',
+                backdropFilter: 'blur(16px)',
+                color: '#fff',
+                customClass: {
+                    popup: 'glass-popup',
+                    confirmButton: 'glass-confirm-btn',
+                    cancelButton: 'glass-cancel-btn'
+                },
+                buttonsStyling: false
+            };
+
+            Swal.fire({
+                title: 'THÔNG BÁO QUAN TRỌNG',
+                text: 'Donate để ủng hộ Admin nhé!',
+                imageUrl: 'https://i.imgur.com/FZrbXUL.jpeg', // Thay link ảnh của bạn vào đây
+                imageWidth: 200,
+                imageHeight: 200,
+                showCancelButton: true,
+                confirmButtonText: 'Tắt trong 5 phút',
+                cancelButtonText: 'Đóng',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                ...glassStyle
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 1. Nếu ấn "Tắt trong 5 phút": Lưu vào LocalStorage
+                    const hideTime = 300 * 1000; // 300 giây
+                    const expiry = new Date().getTime() + hideTime;
+                    localStorage.setItem('hidePopupUntil', expiry);
+
+                    // 2. Hiện thông báo xác nhận nhỏ
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đã ẩn!',
+                        text: 'Thông báo sẽ hiện lại sau 5 phút.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        ...glassStyle
+                    });
+
+                    // 3. Đặt lịch tự hiện lại sau đúng 5 phút
+                    setTimeout(showWelcomePopup, hideTime);
+                } else {
+                    // Nếu ấn "Đóng": Xóa dấu vết để Load lại web là hiện luôn
+                    localStorage.removeItem('hidePopupUntil');
+                }
+            });
+        }
+
+        // Kích hoạt ngay lập tức khi script được đọc
+        if (document.readyState === 'complete') {
+            initWelcomePopup();
+        } else {
+            window.addEventListener('load', initWelcomePopup);
+        }
     </script>
 
 </body>
