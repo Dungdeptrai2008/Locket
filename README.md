@@ -335,7 +335,7 @@ This project is created for **educational purposes only** to demonstrate:
 
 ## Credits
 
-- **Developer**: [Nguyen Quang Dung](https://t.me/nqdungg)
+- **Developer**: [Mai Huy Bao](https://maihuybao.dev)
 - **Design**: Modern glassmorphism with gradient accents
 - **Font**: [Outfit](https://fonts.google.com/specimen/Outfit) by Google Fonts
 - **Icons**: SVG icons from various sources
@@ -346,4 +346,4 @@ This project is provided as-is for educational purposes. Use at your own discret
 
 ---
 
-Bú liếm bởi [Nguyen Quang Dung](https://t.me/nqdungg)
+Made with ❤️ by [Mai Huy Bao](https://maihuybao.dev)
