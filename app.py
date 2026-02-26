@@ -10,10 +10,16 @@ import uuid
 from datetime import datetime
 import dotenv
 import os
+import fcntl
+import tempfile
 
 app = Flask(__name__)
 
 dotenv.load_dotenv()
+
+
+# Queue state file path
+QUEUE_STATE_FILE = "queue_state.json"
 
 # Initialize API and Auth
 subscription_ids = [
@@ -43,7 +49,140 @@ class QueueManager:
         self.current_processing = None
         self.worker_thread = threading.Thread(target=self._process_queue, daemon=True)
         self.worker_thread.start()
+
+        # Load state from file
+        self._load_state()
         print("Queue manager initialized and worker thread started")
+
+    def _save_state(self):
+        """Save current queue state to file with atomic write"""
+        try:
+            state = {"client_requests": {}, "processing_times": self.processing_times}
+
+            with self.lock:
+                for client_id, data in self.client_requests.items():
+                    # Convert datetime objects to ISO strings
+                    req_data = data.copy()
+                    if req_data.get("added_at"):
+                        req_data["added_at"] = req_data["added_at"].isoformat()
+                    if req_data.get("started_at"):
+                        req_data["started_at"] = req_data["started_at"].isoformat()
+                    if req_data.get("completed_at"):
+                        req_data["completed_at"] = req_data["completed_at"].isoformat()
+                    state["client_requests"][client_id] = req_data
+
+            # Atomic write: write to temp file then rename
+            temp_fd, temp_path = tempfile.mkstemp(
+                dir=os.path.dirname(QUEUE_STATE_FILE) or ".", suffix=".tmp"
+            )
+            try:
+                with os.fdopen(temp_fd, "w") as f:
+                    json.dump(state, f, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+
+                # Atomic rename
+                os.replace(temp_path, QUEUE_STATE_FILE)
+                print(f"Queue state saved: {len(state['client_requests'])} requests")
+            except Exception as e:
+                # Clean up temp file on error
+                try:
+                    os.unlink(temp_path)
+                except:
+                    pass
+                raise e
+        except Exception as e:
+            print(f"Error saving queue state: {e}")
+
+    def _load_state(self):
+        """Load queue state from file with file locking"""
+        if not os.path.exists(QUEUE_STATE_FILE):
+            return
+
+        max_retries = 3
+        retry_delay = 0.1
+
+        for attempt in range(max_retries):
+            try:
+                with open(QUEUE_STATE_FILE, "r") as f:
+                    # Try to acquire shared lock for reading (non-blocking on Windows)
+                    try:
+                        if hasattr(fcntl, "flock"):
+                            fcntl.flock(f.fileno(), fcntl.LOCK_SH | fcntl.LOCK_NB)
+                    except (IOError, AttributeError):
+                        # File locking not available or file is locked, retry
+                        if attempt < max_retries - 1:
+                            time.sleep(retry_delay)
+                            continue
+                        # Last attempt, try without lock
+                        pass
+
+                    state = json.load(f)
+
+                    # Release lock
+                    try:
+                        if hasattr(fcntl, "flock"):
+                            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+                    except (IOError, AttributeError):
+                        pass
+
+                if "processing_times" in state:
+                    self.processing_times = state["processing_times"]
+
+                if "client_requests" in state:
+                    with self.lock:
+                        loaded_requests = []
+                        for client_id, data in state["client_requests"].items():
+                            # Convert ISO strings back to datetime
+                            if data.get("added_at"):
+                                data["added_at"] = datetime.fromisoformat(
+                                    data["added_at"]
+                                )
+                            if data.get("started_at"):
+                                data["started_at"] = datetime.fromisoformat(
+                                    data["started_at"]
+                                )
+                            if data.get("completed_at"):
+                                data["completed_at"] = datetime.fromisoformat(
+                                    data["completed_at"]
+                                )
+
+                            self.client_requests[client_id] = data
+                            loaded_requests.append((client_id, data))
+
+                        # Sort by added_at to ensure FIFO order
+                        loaded_requests.sort(key=lambda x: x[1]["added_at"])
+
+                        for client_id, data in loaded_requests:
+                            # Re-queue waiting or interrupted processing requests
+                            if data["status"] == "waiting":
+                                self.queue.put(client_id)
+                                print(f"Re-queued waiting request: {client_id}")
+                            elif data["status"] == "processing":
+                                # Reset status to waiting if it was interrupted
+                                data["status"] = "waiting"
+                                data["started_at"] = None
+                                self.client_requests[client_id] = data
+                                self.queue.put(client_id)
+                                print(f"Re-queued interrupted request: {client_id}")
+
+                print(f"Loaded {len(self.client_requests)} requests from state file")
+                break  # Success, exit retry loop
+
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                print("Failed to load state after all retries")
+            except Exception as e:
+                print(
+                    f"Error loading queue state (attempt {attempt + 1}/{max_retries}): {e}"
+                )
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    continue
+                print("Failed to load state after all retries")
 
     def add_to_queue(self, username):
         """Add a request to the queue and return client_id"""
@@ -60,16 +199,54 @@ class QueueManager:
 
         with self.lock:
             self.client_requests[client_id] = request_data
+            self.queue.put(client_id)
 
-        self.queue.put(client_id)
         print(f"Added {username} to queue with client_id: {client_id}")
+        self._save_state()
         return client_id
+
+    def get_global_status(self):
+        """Get global queue status (not tied to any client)"""
+        with self.lock:
+            total_waiting = self.queue.qsize()
+            if self.current_processing:
+                total_waiting += 1
+
+            # Use average processing time or default to 5 seconds
+            avg_time = 5
+            if self.processing_times:
+                avg_time = sum(self.processing_times[-10:]) / len(
+                    self.processing_times[-10:]
+                )
+
+            estimated_time = int(total_waiting * avg_time)
+
+            return {
+                "status": "idle" if total_waiting == 0 else "active",
+                "total_queue": total_waiting,
+                "estimated_time": estimated_time,
+                "avg_processing_time": avg_time,
+            }
 
     def get_status(self, client_id):
         """Get current status of a request"""
+        # Try to reload state from file if not in memory
+        if client_id not in self.client_requests:
+            print(f"Client ID {client_id} not in memory, reloading state...")
+            self._load_state()
+
         with self.lock:
             if client_id not in self.client_requests:
-                return None
+                print(f"Client ID {client_id} not found in queue after reload")
+                return {
+                    "client_id": client_id,
+                    "status": "not_found",
+                    "position": 0,
+                    "total_queue": self.queue.qsize(),
+                    "estimated_time": 0,
+                    "result": None,
+                    "error": "Request not found. It may have been completed or expired.",
+                }
 
             request_data = self.client_requests[client_id].copy()
 
@@ -140,6 +317,9 @@ class QueueManager:
                     self.client_requests[client_id]["status"] = "processing"
                     self.client_requests[client_id]["started_at"] = datetime.now()
 
+                # Save state when processing starts
+                self._save_state()
+
                 print(f"Processing request for client_id: {client_id}")
 
                 # Process the request
@@ -161,7 +341,17 @@ class QueueManager:
                         if len(self.processing_times) > 20:
                             self.processing_times.pop(0)
 
+                # Save state when processing completes
+                self._save_state()
+
+                # Clean up old completed requests (older than 5 minutes)
+                self._cleanup_old_requests()
+
                 self.queue.task_done()
+
+                # Chờ 5 giây trước khi xử lý người tiếp theo để tránh lỗi API
+                print("Waiting 5 seconds before next request to ensure stability...")
+                time.sleep(5)
 
             except queue.Empty:
                 continue
@@ -170,10 +360,37 @@ class QueueManager:
                 with self.lock:
                     self.current_processing = None
 
+    def _cleanup_old_requests(self):
+        """Remove completed/error requests older than 10 minutes"""
+        try:
+            with self.lock:
+                current_time = datetime.now()
+                to_remove = []
+
+                for client_id, data in self.client_requests.items():
+                    if data["status"] in ["completed", "error"]:
+                        completed_at = data.get("completed_at")
+                        if completed_at:
+                            age = (current_time - completed_at).total_seconds()
+                            if age > 600:  # 10 minutes (increased from 5)
+                                to_remove.append(client_id)
+
+                for client_id in to_remove:
+                    del self.client_requests[client_id]
+                    print(f"Cleaned up old request: {client_id}")
+
+                if to_remove:
+                    self._save_state()
+        except Exception as e:
+            print(f"Error cleaning up old requests: {e}")
+
     def _process_request(self, client_id):
         """Process a single restore purchase request"""
         try:
             with self.lock:
+                if client_id not in self.client_requests:
+                    print(f"Client ID {client_id} disappeared during processing")
+                    return
                 username = self.client_requests[client_id]["username"]
 
             print(f"Processing restore for: {username}")
@@ -230,11 +447,12 @@ class QueueManager:
                 )
 
                 with self.lock:
-                    self.client_requests[client_id]["status"] = "completed"
-                    self.client_requests[client_id]["result"] = {
-                        "success": True,
-                        "msg": f"Purchase {gold_entitlement.get('product_identifier')} for {username} successfully!",
-                    }
+                    if client_id in self.client_requests:
+                        self.client_requests[client_id]["status"] = "completed"
+                        self.client_requests[client_id]["result"] = {
+                            "success": True,
+                            "msg": f"Purchase {gold_entitlement.get('product_identifier')} for {username} successfully!",
+                        }
             else:
                 raise Exception(
                     f"Restore purchase failed. Gold entitlement not found for {username}."
@@ -243,8 +461,9 @@ class QueueManager:
         except Exception as e:
             print(f"Error processing request for {client_id}: {e}")
             with self.lock:
-                self.client_requests[client_id]["status"] = "error"
-                self.client_requests[client_id]["error"] = str(e)
+                if client_id in self.client_requests:
+                    self.client_requests[client_id]["status"] = "error"
+                    self.client_requests[client_id]["error"] = str(e)
 
 
 # Initialize queue manager
@@ -278,9 +497,6 @@ def get_user_info():
 
     data = request.json
     username = data.get("username")
-
-    if not username:
-        return jsonify({"success": False, "msg": "Username is required"}), 400
 
     try:
         # User lookup
@@ -381,6 +597,13 @@ def restore_purchase():
         return jsonify({"success": False, "msg": f"An error occurred: {str(e)}"}), 500
 
 
+@app.route("/api/queue/global-status", methods=["GET"])
+def global_queue_status():
+    """Get overall queue statistics for all users"""
+    status = queue_manager.get_global_status()
+    return jsonify({"success": True, **status})
+
+
 @app.route("/api/queue/status", methods=["POST"])
 def queue_status():
     """Get current queue status for a client"""
@@ -392,11 +615,12 @@ def queue_status():
 
     status = queue_manager.get_status(client_id)
 
-    if status is None:
-        return jsonify({"success": False, "msg": "Client ID not found"}), 404
+    # If not found, still return success with a recoverable status to allow client-side retry
+    if status.get("status") == "not_found":
+        return jsonify({"success": True, **status}), 200
 
     return jsonify({"success": True, **status})
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

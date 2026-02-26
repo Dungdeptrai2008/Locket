@@ -12,6 +12,7 @@ Unlock Locket Gold premium features **with just a username** — no password req
 
 - **🔑 Username-Only Unlock**: No password needed — just enter the Locket username to unlock Gold
 - **👤 User Verification**: Preview user profile and information before processing
+- **🔄 Dynamic Payload Loading**: Fetches payloads from a remote Gist to prevent detection
 - **📱 Real-time Notifications**: Telegram integration for instant success alerts
 - **🎓 Educational Purpose**: Learn about API interactions and modern web development
 
@@ -70,6 +71,7 @@ Real-time queue position updates with countdown timer and progress bar.
    ```env
    EMAIL=your_locket_email@example.com
    PASSWORD=your_locket_password
+   gist_token_url=https://gist.githubusercontent.com/username/gist_id/raw/token.json
    ```
 
 4. **Run the application**
@@ -213,6 +215,12 @@ User Input (username)
 - Client tracking with UUID-based identifiers
 - Processing time history for accurate wait time estimation
 
+**Dynamic Payloads**:
+
+- Fetches latest payloads from remote Gist URL to bypass restrictions
+- Randomly rotates tokens for each request
+- Dynamically injects user UID and fresh timestamps
+
 **API Endpoints**:
 
 - `POST /api/get-user-info`: Fetch user details by username
@@ -270,19 +278,17 @@ User Input (username)
 
 ### Environment Variables
 
-| Variable   | Description             | Required |
-| ---------- | ----------------------- | -------- |
-| `EMAIL`    | Locket account email    | Yes      |
-| `PASSWORD` | Locket account password | Yes      |
+| Variable             | Description                                 | Required |
+| -------------------- | ------------------------------------------- | -------- |
+| `EMAIL`              | Locket account email                        | Yes      |
+| `PASSWORD`           | Locket account password                     | Yes      |
+| `gist_token_url`     | Raw URL to Gist containing request payloads | Yes      |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot Token for notifications        | Optional |
+| `TELEGRAM_CHAT_ID`   | Telegram Chat ID for receiving alerts       | Optional |
 
 ### Telegram Notifications
 
-To enable Telegram notifications, update these values in `app.py`:
-
-```python
-bot_token = "YOUR_TELEGRAM_BOT_TOKEN"
-chat_id = "YOUR_TELEGRAM_CHAT_ID"
-```
+To enable Telegram notifications, simply add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` to your `.env` file. The application will automatically detect them.
 
 ## Troubleshooting
 
@@ -325,11 +331,11 @@ This project is created for **educational purposes only** to demonstrate:
 - This tool is for **iOS devices only**
 - Gold subscription is valid **only until you log out** of the Locket app
 - Use responsibly and in compliance with Locket's Terms of Service
-- The developers are not responsible for any misuse of this tool
+- The developers are not responsible for any misuse of this tool. This project is for research and learning purposes only.
 
 ## Credits
 
-- **Developer**: [QuangDung.dev](https://www.facebook.com/Dungdzai80)
+- **Developer**: [Nguyen Quang Dung](https://t.me/nqdungg)
 - **Design**: Modern glassmorphism with gradient accents
 - **Font**: [Outfit](https://fonts.google.com/specimen/Outfit) by Google Fonts
 - **Icons**: SVG icons from various sources
@@ -340,4 +346,4 @@ This project is provided as-is for educational purposes. Use at your own discret
 
 ---
 
-Made with ❤️ by [Nguyen Quang Dung](https://www.facebook.com/Dungdzai80)
+Bú liếm bởi [Nguyen Quang Dung](https://t.me/nqdungg)

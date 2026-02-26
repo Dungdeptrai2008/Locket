@@ -11,22 +11,22 @@
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);
-            --bg-color: #0f0f0f;
-            --card-bg: rgba(30, 30, 30, 0.6);
+            --bg-color: #050505;
+            --card-bg: rgba(20, 20, 20, 0.7);
             --text-color: #ffffff;
-            --text-secondary: #a0a0a0;
-            --input-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --text-secondary: #b0b0b0;
+            --input-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 215, 0, 0.1);
+            --glass-border: 1px solid rgba(255, 215, 0, 0.15);
         }
 
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-color);
             background-image:
-                radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-                radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-                radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+                radial-gradient(at 0% 0%, hsla(50, 100%, 10%, 1) 0, transparent 50%),
+                radial-gradient(at 50% 0%, hsla(45, 100%, 15%, 1) 0, transparent 50%),
+                radial-gradient(at 100% 0%, hsla(50, 100%, 10%, 1) 0, transparent 50%);
             color: var(--text-color);
             display: flex;
             flex-direction: column;
@@ -72,6 +72,19 @@
             z-index: 0;
         }
 
+        .app-icon {
+            width: 76px;
+            height: 76px;
+            border-radius: 18px;
+            display: block;
+            margin: 0 auto 0.75rem;
+            object-fit: cover;
+            overflow: hidden;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+            position: relative;
+            z-index: 1;
+        }
+
         h1 {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
@@ -97,6 +110,36 @@
             text-align: left;
             position: relative;
             z-index: 1;
+        }
+
+        /* Global Queue Status (Outside Modal) */
+        .global-queue-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 215, 0, 0.05);
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .global-queue-item {
+            text-align: center;
+        }
+
+        .global-queue-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .global-queue-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #FFD700;
         }
 
         label {
@@ -145,12 +188,14 @@
             z-index: 1;
         }
 
-        button:hover {
+        button:hover,
+        .download-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px -5px rgba(253, 185, 49, 0.4);
         }
 
-        button:active {
+        button:active,
+        .download-btn:active {
             transform: translateY(0);
         }
 
@@ -171,6 +216,60 @@
             color: var(--text-secondary);
         }
 
+        /* Platform Tabs */
+        .platform-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .platform-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .platform-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .platform-tab.active {
+            background: var(--primary-gradient);
+            color: #000;
+            border-color: transparent;
+        }
+
+        .platform-content {
+            display: none;
+        }
+
+        .platform-content.active {
+            display: block;
+        }
+
+        .dns-hostname {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #FFD700;
+            text-align: center;
+            margin: 0.75rem 0;
+            user-select: all;
+        }
+
         .instructions h3 {
             color: #fff;
             font-size: 1rem;
@@ -189,6 +288,21 @@
 
         .instructions li {
             margin-bottom: 0.5rem;
+        }
+
+        .youtube-embed {
+            margin-top: 1.25rem;
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .youtube-embed iframe {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            border: 0;
+            display: block;
         }
 
         /* Note Card */
@@ -453,10 +567,23 @@
 
     <div class="main-wrapper">
         <div class="container">
+            <img src="https://play-lh.googleusercontent.com/eRZLg00mAQGayCrFjDBklPIpW3qFHcmUs8PUQA4z7hVe-cDKMcRqecVHONAIexJGJZM"
+                alt="Locket Icon" class="app-icon">
             <h1>Locket Gold</h1>
-            <p class="subtitle">Unlock premium features instantly</p>
+            <p class="subtitle">𝘕𝘨𝘶𝘺𝘦𝘯 𝘘𝘶𝘢𝘯𝘨 𝘋𝘶𝘯𝘨</p>
 
             <div class="form-group">
+                <div class="global-queue-container" id="globalQueueContainer">
+                    <div class="global-queue-item">
+                        <div class="global-queue-label">Total Waiting</div>
+                        <div class="global-queue-value" id="globalQueueTotal">-</div>
+                    </div>
+                    <div class="global-queue-item">
+                        <div class="global-queue-label">Est. Time</div>
+                        <div class="global-queue-value" id="globalQueueTime">-</div>
+                    </div>
+                </div>
+
                 <label for="username">Target Username</label>
                 <input type="text" id="username" placeholder="Enter Locket username..." required autocomplete="off">
             </div>
@@ -477,36 +604,105 @@
                 </svg>
                 How to use
             </h3>
-            <ol>
-                <li>Mở Locket và tìm id user trong cài đặt.</li>
-                <li>Nhập username vào ô ở phía trên.</li>
-                <li>Click <strong>Kiểm tra user</strong> để xác minh tài khoản.</li>
-                <li>Xem lại thông tin <strong>tiếp tục</strong> để mở khóa Gold.</li>
-                <li><strong>Lưu ý:</strong> Sau khi kích hoạt, bạn phải cài đặt mobiconfig bên dưới để chặn việc thu hồi.</li>
-                <li>Khởi động lại ứng dụng Locket để xem lại thay đổi.</li>
-                <li>𝘕𝘨𝘶𝘺𝘦̂̃𝘯 𝘘𝘶𝘢𝘯𝘨 𝘋𝘶̃𝘯𝘨</li>
-            </ol>
-            <div style="margin-top: 1rem; text-align: center;">
-                <a href="/static/locket.mobileconfig" class="download-btn" target="_blank" style="
-                    display: inline-block;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #fff;
-                    padding: 0.8rem 1.5rem;
-                    border-radius: 0.75rem;
-                    text-decoration: none;
-                    font-weight: 600;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    transition: all 0.3s ease;
-                ">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="vertical-align: middle; margin-right: 8px;">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
+
+            <!-- Platform Tabs -->
+            <div class="platform-tabs">
+                <div class="platform-tab active" onclick="switchPlatform('ios')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                            d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                     </svg>
-                    Download Configuration Profile
-                </a>
+                    iOS
+                </div>
+                <div class="platform-tab" onclick="switchPlatform('android')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path
+                            d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24a11.5 11.5 0 0 0-8.94 0L5.65 5.67c-.19-.28-.54-.37-.83-.22-.3.16-.42.54-.26.85l1.84 3.18C2.92 11.03 1 14.22 1 17.8h22c0-3.58-1.92-6.77-5.4-8.32zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z" />
+                    </svg>
+                    Android
+                </div>
+            </div>
+
+            <!-- iOS Content -->
+            <div id="ios-content" class="platform-content active">
+                <ol>
+                    <li>Open the Locket app and find your username in settings.</li>
+                    <li>Enter your exact username in the field above.</li>
+                    <li>Click <strong>Check User Info</strong> to verify the account.</li>
+                    <li>Review the information and click <strong>Continue</strong> to unlock Gold.</li>
+                    <li><strong>Important:</strong> After activation, you must install the configuration profile below
+                        to
+                        block revocation.</li>
+                    <li>Restart your Locket app to see the changes.</li>
+                </ol>
+                <div style="margin-top: 1rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/static/locket.mobileconfig" class="download-btn" target="_blank" style="
+                        display: inline-flex;
+                        align-items: center;
+                        background: rgba(255, 255, 255, 0.1);
+                        color: #fff;
+                        padding: 0.8rem 1.5rem;
+                        border-radius: 0.75rem;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-size: 1rem;
+                        font-family: 'Outfit', sans-serif;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        transition: all 0.3s ease;
+                    ">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align: middle; margin-right: 8px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Profile
+                    </a>
+
+                    <button onclick="showTutorial()" style="
+                        display: inline-flex;
+                        align-items: center;
+                        width: auto;
+                        background: rgba(255, 215, 0, 0.1);
+                        color: #FFD700;
+                        padding: 0.8rem 1.5rem;
+                        border-radius: 0.75rem;
+                        font-weight: 600;
+                        font-size: 1rem;
+                        font-family: 'Outfit', sans-serif;
+                        cursor: pointer;
+                        border: 1px solid rgba(255, 215, 0, 0.2);
+                        transition: all 0.3s ease;
+                    ">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align: middle; margin-right: 8px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                        </svg>
+                        Watch Tutorial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Android Content -->
+            <div id="android-content" class="platform-content">
+                <ol>
+                    <li>Open the Locket app and find your username in Settings.</li>
+                    <li>Click <strong>Check User Info</strong> to verify the account.</li>
+                    <li>Go to <strong>Settings → Network & Internet</strong> on your Android device.</li>
+                    <li>Tap <strong>Private DNS</strong>.</li>
+                    <li>Select <strong>Private DNS provider hostname</strong>.</li>
+                    <li>Enter the following hostname:</li>
+                </ol>
+                <div class="dns-hostname">62d63b.dns.nextdns.io</div>
+                <ol start="7">
+                    <li>Tap <strong>Save</strong>.</li>
+                    <li>Restart your Locket app to see the changes.</li>
+                </ol>
             </div>
         </div>
 
@@ -522,7 +718,7 @@
                 Important Note
             </h3>
             <ul>
-                <li>This tool is compatible with <strong>iOS Devices Only</strong>.</li>
+                <li>This tool is compatible with <strong>iOS and Android Devices</strong>.</li>
                 <li>The Gold subscription is only valid until you <strong>log out</strong> of the Locket app.</li>
                 <li>This project is created for <strong>educational purposes only</strong>.</li>
             </ul>
@@ -530,12 +726,58 @@
     </div>
 
     <footer>
-        Created with ❤️ by <a href="https://quangdung.netlify.app" target="_blank">QuangDung.dev</a>
+        <p>Bú liếm bởi <a href="https://t.me/nqdungg" target="_blank">Nguyen Quang Dung</a></p>
+        <p style="margin-top: 5px; font-size: 0.8rem;">
+            <a href="https://github.com/Dungdeptrai2008/Locket" target="_blank" style="opacity: 0.7;">
+                Open Source on GitHub
+            </a>
+        </p>
     </footer>
 
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
+        // Platform switching function
+        function switchPlatform(platform) {
+            // Update tabs
+            document.querySelectorAll('.platform-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.platform-tab').classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.platform-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(platform + '-content').classList.add('active');
+        }
+
+        function showTutorial() {
+            Swal.fire({
+                title: 'How to Install',
+                html: `
+                    <div style="
+                        border-radius: 1rem;
+                        overflow: hidden;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        background: rgba(0, 0, 0, 0.2);
+                    ">
+                        <iframe src="https://www.youtube.com/embed/DVEkn_AZd4w?autoplay=1" title="YouTube video player"
+                            style="width: 100%; aspect-ratio: 9/16; border: 0; display: block;"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                `,
+                ...swalGlassParams,
+                showConfirmButton: false,
+                showCloseButton: true,
+                width: 400,
+                padding: '1.5rem'
+            });
+        }
+
         let currentUserData = null;
 
         const swalGlassParams = {
@@ -577,7 +819,9 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username: username }),
+                    body: JSON.stringify({
+                        username: username
+                    }),
                 });
 
                 const data = await response.json();
@@ -684,8 +928,19 @@
         let pollInterval = null;
         let countdownInterval = null;
         let currentEstimatedTime = 0;
+        let lastPosition = null;
+        let pollRetryCount = 0;
+        const MAX_POLL_RETRIES = 3;
 
         function showQueueStatus(clientId, username) {
+            // Reset state
+            lastPosition = null;
+            currentEstimatedTime = 0;
+            pollRetryCount = 0;
+            if (pollInterval) clearTimeout(pollInterval);
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = null;
+
             // Show initial queue modal
             Swal.fire({
                 title: 'Queue Status',
@@ -733,6 +988,31 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    if (data.status === 'not_found') {
+                        // Retry a few times before giving up
+                        pollRetryCount++;
+                        if (pollRetryCount < MAX_POLL_RETRIES) {
+                            console.log(`Request not found, retry ${pollRetryCount}/${MAX_POLL_RETRIES}`);
+                            pollInterval = setTimeout(() => pollQueueStatus(clientId, username), 2000);
+                            return;
+                        }
+
+                        // Request not found after retries - stop polling and show error
+                        clearInterval(pollInterval);
+                        clearInterval(countdownInterval);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Request Not Found',
+                            text: 'Your request could not be found. Please try again.',
+                            ...swalGlassParams,
+                            confirmButtonText: 'Close'
+                        });
+                        resetGlobalQueueUI();
+                        return;
+                    }
+
+                    // Reset retry count on successful status
+                    pollRetryCount = 0;
                     updateQueueUI(data, username);
 
                     // Check if completed or error
@@ -740,10 +1020,12 @@
                         clearInterval(pollInterval);
                         clearInterval(countdownInterval);
                         showCompletedStatus(data);
+                        resetGlobalQueueUI();
                     } else if (data.status === 'error') {
                         clearInterval(pollInterval);
                         clearInterval(countdownInterval);
                         showErrorStatus(data);
+                        resetGlobalQueueUI();
                     } else {
                         // Continue polling
                         pollInterval = setTimeout(() => pollQueueStatus(clientId, username), 1000);
@@ -758,12 +1040,11 @@
                         ...swalGlassParams,
                         confirmButtonText: 'Close'
                     });
+                    resetGlobalQueueUI();
                 }
             } catch (error) {
                 console.error('Polling error:', error);
-                clearInterval(pollInterval);
-                clearInterval(countdownInterval);
-                // Retry after 2 seconds
+                // Retry after 2 seconds on network error
                 pollInterval = setTimeout(() => pollQueueStatus(clientId, username), 2000);
             }
         }
@@ -797,14 +1078,17 @@
 
                 // Update total
                 totalEl.textContent = data.total_queue;
+                updateGlobalQueueUI(data);
 
-                // Update time and start countdown
-                currentEstimatedTime = data.estimated_time;
-                updateTimeDisplay();
+                // Update time ONLY if position changed to prevent jitter
+                if (lastPosition !== data.position) {
+                    currentEstimatedTime = data.estimated_time;
+                    lastPosition = data.position;
+                    updateTimeDisplay();
+                }
 
-                // Clear existing countdown and start new one
-                clearInterval(countdownInterval);
-                if (currentEstimatedTime > 0) {
+                // Ensure countdown is running
+                if (!countdownInterval) {
                     countdownInterval = setInterval(() => {
                         if (currentEstimatedTime > 0) {
                             currentEstimatedTime--;
@@ -817,18 +1101,77 @@
 
         function updateTimeDisplay() {
             const timeEl = document.getElementById('queueTime');
-            if (timeEl) {
-                if (currentEstimatedTime === 0) {
-                    timeEl.textContent = 'Soon';
-                } else if (currentEstimatedTime < 60) {
-                    timeEl.textContent = `${currentEstimatedTime}s`;
+            const globalTimeEl = document.getElementById('globalQueueTime');
+
+            let formatted = 'Soon';
+            if (currentEstimatedTime !== 0) {
+                if (currentEstimatedTime < 60) {
+                    formatted = `${currentEstimatedTime}s`;
                 } else {
                     const minutes = Math.floor(currentEstimatedTime / 60);
                     const seconds = currentEstimatedTime % 60;
-                    timeEl.textContent = `${minutes}m ${seconds}s`;
+                    formatted = `${minutes}m ${seconds}s`;
                 }
             }
+
+            if (timeEl) timeEl.textContent = formatted;
+            if (globalTimeEl) globalTimeEl.textContent = formatted;
         }
+
+        function updateGlobalQueueUI(data) {
+            const containerEl = document.getElementById('globalQueueContainer');
+            const totalEl = document.getElementById('globalQueueTotal');
+
+            if (containerEl) containerEl.style.display = 'grid';
+            if (totalEl) totalEl.textContent = data.total_queue;
+        }
+
+        function resetGlobalQueueUI() {
+            const containerEl = document.getElementById('globalQueueContainer');
+            const totalEl = document.getElementById('globalQueueTotal');
+            const timeEl = document.getElementById('globalQueueTime');
+
+            if (containerEl) containerEl.style.display = 'grid';
+            if (totalEl) totalEl.textContent = '0';
+            if (timeEl) timeEl.textContent = 'Soon';
+        }
+
+        async function fetchGlobalQueueStatus() {
+            try {
+                const response = await fetch('/api/queue/global-status');
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    const totalEl = document.getElementById('globalQueueTotal');
+                    const timeEl = document.getElementById('globalQueueTime');
+                    const containerEl = document.getElementById('globalQueueContainer');
+
+                    if (containerEl) containerEl.style.display = 'grid';
+                    if (totalEl) totalEl.textContent = data.total_queue;
+
+                    // Update estimated time
+                    let formattedTime = 'Soon';
+                    if (data.estimated_time > 0) {
+                        if (data.estimated_time < 60) {
+                            formattedTime = `${data.estimated_time}s`;
+                        } else {
+                            const minutes = Math.floor(data.estimated_time / 60);
+                            const seconds = data.estimated_time % 60;
+                            formattedTime = `${minutes}m ${seconds}s`;
+                        }
+                    }
+                    if (timeEl) timeEl.textContent = formattedTime;
+                }
+            } catch (error) {
+                console.error('Error fetching global queue status:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchGlobalQueueStatus();
+            setInterval(fetchGlobalQueueStatus, 5000);
+            resetGlobalQueueUI();
+        });
 
         function showCompletedStatus(data) {
             if (data.result && data.result.success) {
